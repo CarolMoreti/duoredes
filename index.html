@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>QuizNet</title>
+
+  <style>
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family: "Segoe UI", sans-serif;
+    }
+
+    body{
+      background: linear-gradient(135deg, #fff8d6, #e8ffd7);
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      padding:20px;
+    }
+
+    .container{
+      width:100%;
+      max-width:700px;
+      background:white;
+      border-radius:30px;
+      padding:35px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    h1{
+      text-align:center;
+      color:#78b300;
+      margin-bottom:10px;
+      font-size:2.5rem;
+    }
+
+    .subtitle{
+      text-align:center;
+      color:#888;
+      margin-bottom:25px;
+    }
+
+    .top-info{
+      display:flex;
+      justify-content:space-between;
+      margin-bottom:20px;
+      font-weight:bold;
+      color:#666;
+    }
+
+    .question{
+      font-size:1.3rem;
+      margin-bottom:25px;
+      color:#444;
+      line-height:1.5;
+    }
+
+    .answers{
+      display:flex;
+      flex-direction:column;
+      gap:15px;
+    }
+
+    button{
+      border:none;
+      border-radius:18px;
+      padding:15px;
+      cursor:pointer;
+      transition:0.2s;
+      font-size:1rem;
+    }
+
+    .answer-btn{
+      background:#f7f7f7;
+      text-align:left;
+      color:#333;
+    }
+
+    .answer-btn:hover{
+      background:#f0ffd0;
+      transform:scale(1.02);
+    }
+
+    .correct{
+      background:#b8f58f !important;
+      color:#1f4d00;
+    }
+
+    .wrong{
+      background:#ffb3b3 !important;
+      color:#700000;
+    }
+
+    .next-btn{
+      margin-top:25px;
+      width:100%;
+      background:#c8ff58;
+      color:#3f6300;
+      font-weight:bold;
+    }
+
+    .next-btn:hover{
+      background:#b8ef4d;
+    }
+
+    .explanation{
+      margin-top:20px;
+      background:#fff9d6;
+      padding:18px;
+      border-radius:18px;
+      color:#555;
+      line-height:1.5;
+      display:none;
+    }
+
+    .score-screen{
+      text-align:center;
+      display:none;
+    }
+
+    .score-screen h2{
+      color:#78b300;
+      margin-bottom:15px;
+      font-size:2rem;
+    }
+
+    .restart-btn{
+      margin-top:20px;
+      background:#c8ff58;
+      color:#3f6300;
+      font-weight:bold;
+      width:100%;
+    }
+
+    .progress{
+      width:100%;
+      height:12px;
+      background:#eee;
+      border-radius:50px;
+      overflow:hidden;
+      margin-bottom:25px;
+    }
+
+    .progress-bar{
+      height:100%;
+      width:0%;
+      background:linear-gradient(to right, #d8ff72, #7ed957);
+      transition:0.3s;
+    }
+
+    @media(max-width:600px){
+      .container{
+        padding:25px;
+      }
+
+      h1{
+        font-size:2rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div id="quiz-container">
+
+    <h1>QuizNet</h1>
+    <p class="subtitle">Aprenda Redes de Computadores jogando 🚀</p>
+
+    <div class="progress">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div class="top-info">
+      <span id="questionNumber">Pergunta 1/10</span>
+      <span id="score">Pontos: 0</span>
+    </div>
+
+    <div class="question" id="question"></div>
+
+    <div class="answers" id="answers"></div>
+
+    <div class="explanation" id="explanation"></div>
+
+    <button class="next-btn" id="nextBtn" style="display:none;">
+      Próxima Pergunta
+    </button>
+
+  </div>
+
+  <div class="score-screen" id="scoreScreen">
+    <h2>Partida Finalizada 🎉</h2>
+    <p id="finalScore"></p>
+
+    <button class="restart-btn" onclick="startGame()">
+      Jogar Novamente
+    </button>
+  </div>
+
+</div>
+
+<script>
+
+const allQuestions = [
+
+{
+question: "O que é um gargalo em um sistema de rede?",
+answers:[
+{text:"Um ponto onde o tráfego flui mais rápido", correct:false},
+{text:"Um ponto que limita o desempenho total do sistema", correct:true},
+{text:"Um protocolo de compressão de dados", correct:false},
+{text:"Uma ferramenta para medir velocidade de internet", correct:false}
+],
+explanation:"Gargalo é qualquer componente que limita o desempenho geral da rede."
+},
+
+{
+question: "Latência é definida como:",
+answers:[
+{text:"A largura de banda total disponível", correct:false},
+{text:"O atraso na transmissão de dados de um ponto ao outro", correct:true},
+{text:"A taxa de perda de pacotes", correct:false},
+{text:"A capacidade de armazenamento da rede", correct:false}
+],
+explanation:"Latência representa o tempo que os dados levam para viajar entre origem e destino."
+},
+
+{
+question: "Jitter corresponde a:",
+answers:[
+{text:"Variação no atraso entre pacotes sucessivos", correct:true},
+{text:"Taxa de compressão aplicada aos pacotes", correct:false},
+{text:"Número de conexões por segundo", correct:false},
+{text:"Quantidade total de pacotes enviados", correct:false}
+],
+explanation:"Jitter é a variação no atraso dos pacotes, comum em chamadas de vídeo e voz."
+},
+
+{
+question: "O protocolo DHCP tem como função principal:",
+answers:[
+{text:"Autenticar dispositivos na rede", correct:false},
+{text:"Atribuir endereços IP automaticamente", correct:true},
+{text:"Controlar o acesso ao roteador", correct:false},
+{text:"Criar tabelas de roteamento estático", correct:false}
+],
+explanation:"DHCP distribui IPs automaticamente para os dispositivos conectados."
+},
+
+{
+question: "O porta padrão utilizado pelo serviço HTTPS é:",
+answers:[
+{text:"21", correct:false},
+{text:"25", correct:false},
+{text:"443", correct:true},
+{text:"110", correct:false}
+],
+explanation:"HTTPS utiliza a porta 443 para comunicação segura."
+},
+
+{
+question: "O serviço DNS opera principalmente na porta:",
+answers:[
+{text:"23", correct:false},
+{text:"53", correct:true},
+{text:"8080", correct:false},
+{text:"161", correct:false}
+],
+explanation:"DNS utiliza principalmente a porta 53."
+},
+
+{
+question: "O protocolo TCP é caracterizado por:",
+answers:[
+{text:"Ser orientado à conexão", correct:true},
+{text:"Não garantir entrega de pacotes", correct:false},
+{text:"Funcionamento apenas na camada física", correct:false},
+{text:"Uso exclusivo para streaming", correct:false}
+],
+explanation:"TCP garante entrega e organização correta dos pacotes."
+},
+
+{
+question: "O protocolo ICMP é usado principalmente para:",
+answers:[
+{text:"Diagnóstico e teste de conectividade", correct:true},
+{text:"Transferir arquivos de forma segura", correct:false},
+{text:"Fornecer autenticação de usuários", correct:false},
+{text:"Criar tabelas de roteamento dinâmico", correct:false}
+],
+explanation:"ICMP é usado em ferramentas como ping e traceroute."
+},
+
+{
+question: "A principal função do DNS é:",
+answers:[
+{text:"Criptografar nomes de domínio", correct:false},
+{text:"Converter IP em nomes", correct:false},
+{text:"Converter nomes de domínio em endereços IP", correct:true},
+{text:"Monitorar páginas web", correct:false}
+],
+explanation:"DNS traduz nomes como google.com em endereços IP."
+},
+
+{
+question: "Qual solução ajuda a reduzir gargalos na rede?",
+answers:[
+{text:"Reduzir a capacidade dos switches", correct:false},
+{text:"Aumentar o tráfego simultâneo", correct:false},
+{text:"Implementar balanceamento de carga", correct:true},
+{text:"Aumentar artificialmente a latência", correct:false}
+],
+explanation:"Balanceamento de carga distribui o tráfego e evita sobrecarga."
+},
+
+{
+question: "Qual protocolo é responsável pelo envio de e-mails entre servidores?",
+answers:[
+{text:"POP3", correct:false},
+{text:"IMAP", correct:false},
+{text:"FTP", correct:false},
+{text:"SMTP", correct:true}
+],
+explanation:"SMTP é o protocolo usado para envio de e-mails."
+},
+
+{
+question: "Qual camada do modelo OSI é responsável pelo roteamento?",
+answers:[
+{text:"Aplicação", correct:false},
+{text:"Rede", correct:true},
+{text:"Transporte", correct:false},
+{text:"Física", correct:false}
+],
+explanation:"A camada de rede cuida do roteamento dos pacotes."
+},
+
+{
+question: "Em redes, o que significa largura de banda?",
+answers:[
+{text:"A distância entre roteadores", correct:false},
+{text:"A quantidade máxima de dados transmitidos", correct:true},
+{text:"O número de cabos da rede", correct:false},
+{text:"A quantidade de servidores", correct:false}
+],
+explanation:"Largura de banda é a capacidade máxima de transmissão."
+},
+
+{
+question: "Qual dispositivo conecta diferentes redes?",
+answers:[
+{text:"Switch", correct:false},
+{text:"Roteador", correct:true},
+{text:"Hub", correct:false},
+{text:"Repetidor", correct:false}
+],
+explanation:"O roteador interliga redes diferentes."
+},
+
+{
+question: "Qual protocolo é utilizado para transferência de arquivos?",
+answers:[
+{text:"FTP", correct:true},
+{text:"SMTP", correct:false},
+{text:"HTTP", correct:false},
+{text:"DNS", correct:false}
+],
+explanation:"FTP é um protocolo específico para transferência de arquivos."
+},
+
+{
+question: "Baixa latência significa:",
+answers:[
+{text:"Maior atraso", correct:false},
+{text:"Resposta rápida", correct:true},
+{text:"Mais perda de pacotes", correct:false},
+{text:"Rede desligada", correct:false}
+],
+explanation:"Quanto menor a latência, mais rápida é a comunicação."
+},
+
+{
+question: "Qual equipamento opera principalmente na camada 2?",
+answers:[
+{text:"Switch", correct:true},
+{text:"Roteador", correct:false},
+{text:"Firewall", correct:false},
+{text:"Servidor", correct:false}
+],
+explanation:"Switches trabalham principalmente na camada de enlace."
+}
+
+];
+
+let questions = [];
+let currentQuestion = 0;
+let score = 0;
+
+const questionEl = document.getElementById("question");
+const answersEl = document.getElementById("answers");
+const explanationEl = document.getElementById("explanation");
+const nextBtn = document.getElementById("nextBtn");
+const questionNumber = document.getElementById("questionNumber");
+const scoreEl = document.getElementById("score");
+const progressBar = document.getElementById("progressBar");
+
+function shuffle(array){
+  return array.sort(() => Math.random() - 0.5);
+}
+
+function startGame(){
+
+  currentQuestion = 0;
+  score = 0;
+
+  document.getElementById("quiz-container").style.display = "block";
+  document.getElementById("scoreScreen").style.display = "none";
+
+  questions = shuffle([...allQuestions]).slice(0,10);
+
+  showQuestion();
+}
+
+function showQuestion(){
+
+  resetState();
+
+  const q = questions[currentQuestion];
+
+  questionNumber.innerText = `Pergunta ${currentQuestion + 1}/10`;
+  scoreEl.innerText = `Pontos: ${score}`;
+
+  progressBar.style.width = `${((currentQuestion)/10)*100}%`;
+
+  questionEl.innerText = q.question;
+
+  q.answers.forEach(answer => {
+
+    const btn = document.createElement("button");
+
+    btn.innerText = answer.text;
+    btn.classList.add("answer-btn");
+
+    btn.addEventListener("click", () => selectAnswer(btn, answer.correct));
+
+    answersEl.appendChild(btn);
+
+  });
+
+}
+
+function resetState(){
+  answersEl.innerHTML = "";
+  explanationEl.style.display = "none";
+  nextBtn.style.display = "none";
+}
+
+function selectAnswer(button, correct){
+
+  const buttons = document.querySelectorAll(".answer-btn");
+
+  buttons.forEach(btn => btn.disabled = true);
+
+  if(correct){
+    button.classList.add("correct");
+    score++;
+    scoreEl.innerText = `Pontos: ${score}`;
+  }else{
+    button.classList.add("wrong");
+
+    buttons.forEach(btn => {
+      const answerText = btn.innerText;
+
+      const currentAnswers = questions[currentQuestion].answers;
+
+      currentAnswers.forEach(ans => {
+        if(ans.text === answerText && ans.correct){
+          btn.classList.add("correct");
+        }
+      });
+    });
+  }
+
+  explanationEl.innerText = questions[currentQuestion].explanation;
+  explanationEl.style.display = "block";
+
+  nextBtn.style.display = "block";
+}
+
+nextBtn.addEventListener("click", () => {
+
+  currentQuestion++;
+
+  if(currentQuestion < 10){
+    showQuestion();
+  }else{
+    finishGame();
+  }
+
+});
+
+function finishGame(){
+
+  progressBar.style.width = "100%";
+
+  document.getElementById("quiz-container").style.display = "none";
+  document.getElementById("scoreScreen").style.display = "block";
+
+  document.getElementById("finalScore").innerHTML =
+  `Você acertou <strong>${score}</strong> de 10 perguntas! 🏆`;
+
+}
+
+startGame();
+
+</script>
+
+</body>
+</html>
